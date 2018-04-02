@@ -1,0 +1,40 @@
+{
+	"BERTestHardwareConfiguration": {
+		"attenuatorCOMPort": "COM3",
+		"attenuatorCOMPortRateSelect": 9600,
+        "attenuatorDefaultValue":2,
+		"berAArdvarkID": 0,
+		"berSelectedBusNo":0,
+		"cdrBERDeviceAddr":24,
+		"selectCDRRegAddr":289,
+		"setBusRegAddr":288,
+		"berAArdVarkRateSelectKhz": 100,
+        "moduleAArdvarkID":1,
+		"dataRate":51562500000,
+        "mpduleAArdVarkRateSelectKhz": 100
+
+	},
+	"BER_TestMode": {
+		"_comment": "['Real']-all on, ['Simulating']==>Excluding all hardware, ['Semi']==>No Attenuator hardware",
+		"testModeSelect": "Simulating",
+		"channelWaitTime":0.1,
+		"startBERAttr":6,
+		"endBERAttr":25,
+		"attrStep":0.5,
+		"minWaitTime":8,
+		"maxWaitTime":100,
+		"minErrors":100
+
+
+	},
+
+	"FileManagement": {
+		"saveFileLocation": "Z:/Development/QSFP28/COB/Test_and_measurements/",
+		"outputFileName1": "BER_data.xls",
+
+		"excelWorkBook": {
+			"SheetBERName": "BER_data"
+
+		}
+	}
+}
