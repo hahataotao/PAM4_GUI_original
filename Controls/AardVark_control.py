@@ -5,6 +5,7 @@ import string
 I2C_BITRATE     = 400   # I2C bit rate, normally 400 [kHz]
 BUS_TIMEOUT     = 150   # [ms]
 QSFP_I2C_ADDR   = 0x50
+Rx_Eval_CDR_addr=0x18
 MAX_PAGE        = 30
 
 handle = 0
@@ -41,6 +42,18 @@ class AardVark_control(object):
          data_out = array('B', data)
          ret = aa_i2c_write(handle, QSFP_I2C_ADDR, AA_I2C_NO_FLAGS, data_out)
          return ret
+
+     def i2c_write_eval(self, data):
+         data_out = array('B', data)
+         ret = aa_i2c_write(handle,  Rx_Eval_CDR_addr>>1, AA_I2C_NO_FLAGS, data_out)
+         return ret
+
+     def i2c_read_eval(self,nbytes):
+         (count, data_in) = aa_i2c_read(handle, Rx_Eval_CDR_addr>>1, AA_I2C_NO_FLAGS, nbytes)
+         if count != nbytes:
+             print "error: i2c_read: aa_i2c_read returned %d (expected %d)" % (count, nbytes)
+             data_in = []
+         return data_in
 
      def i2c_read(self,nbytes):
          (count, data_in) = aa_i2c_read(handle, QSFP_I2C_ADDR, AA_I2C_NO_FLAGS, nbytes)
@@ -132,20 +145,32 @@ class AardVark_control(object):
         # print count
          print "Write to Device 0x%02x reg 0x%02x: 0x%02x" % (dev, reg, dat)
 
-     def readfromCDR(self,bus,deviceAddr,regaddr):
-         wrbuf = [127, 0x08]  # set page pointer
-         self.i2c_write(wrbuf)
-         dev = deviceAddr & 0xff
+     def write2CDREval(self,regaddr, data):
          reg = regaddr & 0xff
+         dat = data & 0xff
+         wrbuf = [reg, dat]  # set I2C register address  # set I2C register data
+         self.i2c_write_eval(wrbuf)
+         print "Write to reg 0x%02x: 0x%02x" % ( reg, dat)
 
+     def readfromCDREval(self, regaddr):
+         reg = regaddr & 0xff
+         wrbuf = [reg]  # set I2C register address
+         self.i2c_write_eval(wrbuf)
+         rdbuf = self.i2c_read_eval(1)
+         count = 0
+         # while (rdbuf[0] != 0):
+         #     count = count + 1
+         #     self.i2c_write_eval(wrbuf)
+         #     rdbuf = self.i2c_read_eval(1)
+         dat = rdbuf[0]
+         # print ""Bus %d device 0x%02x reg 0x%02x: 0x%02x"" % (bus, dev, reg, dat)
+         return dat
+         # print ""Device 0x%02x reg 0x%02x: 0x%02x"" % (bus, dev, reg, dat)"
 
-         if bus > 1:
-             bus = 1
-         wrbuf = [225, bus]  # set I2C bus number
-         self.i2c_write(wrbuf)
-         wrbuf = [226, dev]  # set I2C device address
-         self.i2c_write(wrbuf)
-         wrbuf = [227, reg]  # set I2C register address
+     def readfromCDR(self,regaddr):
+
+         reg = regaddr & 0xff
+         wrbuf = [reg]  # set I2C register address
          self.i2c_write(wrbuf)
 
 

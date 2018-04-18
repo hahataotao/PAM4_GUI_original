@@ -68,26 +68,32 @@ class gatingWorker(QtCore.QObject):
             #initialize section for preparing BER ,update GUI widget from model
             #Read error counter and calculate BER for four channel
             self.realGatingStartTime=clock()
+            # self.AA.write2CDREval(0xff, 0)
+            # q=self.AA.readfromCDREval(0)
             for i,ch in enumerate(self.rxCDR.channelPageNo.keys()):
 
-                self.AA.write2CDR(self.berSelectBusNo,self.cdrDeviceAddr, self.pageCtrlAddr,self.rxCDR.channelPageNo[ch])  # select pageNo for error counter read
-                self.AA.write2CDR(self.berSelectBusNo, self.cdrDeviceAddr,self.rxCDR.ErrCounterCtrlAddr,0x05)    #Reset the counter
-                self.AA.write2CDR(self.berSelectBusNo, self.cdrDeviceAddr, self.rxCDR.ErrCounterCtrlAddr,0x01)  # Release the reset
+                # self.AA.write2CDR(self.berSelectBusNo,self.cdrDeviceAddr, self.pageCtrlAddr,self.rxCDR.channelPageNo[ch])  # select pageNo for error counter read
+                # self.AA.write2CDR(self.berSelectBusNo, self.cdrDeviceAddr,self.rxCDR.ErrCounterCtrlAddr,0x05)    #Reset the counter
+                # self.AA.write2CDR(self.berSelectBusNo, self.cdrDeviceAddr, self.rxCDR.ErrCounterCtrlAddr,0x01)  # Release the reset
+                self.AA.write2CDREval(self.pageCtrlAddr,self.rxCDR.channelPageNo[ch])
+                self.AA.write2CDREval(self.rxCDR.ErrCounterCtrlAddr,0x05)    #Reset the counter
+                self.AA.write2CDREval(self.rxCDR.ErrCounterCtrlAddr,0x01)  # Release the reset
                 startTime = clock()
                 sleep(self.channelWaitTime)
                 print("Gating window waiting time is "+ str(self.channelWaitTime))
-                self.AA.write2CDR(self.berSelectBusNo, self.cdrDeviceAddr, self.rxCDR.ErrCounterCtrlAddr,0x09)  # Freeeze the counters
+                #self.AA.write2CDR(self.berSelectBusNo, self.cdrDeviceAddr, self.rxCDR.ErrCounterCtrlAddr,0x09)  # Freeeze the counters
+                self.AA.write2CDREval(self.rxCDR.ErrCounterCtrlAddr,0x09)  # Freeeze the counters
                 finishTime = clock()
                 #after error counter frozen and start counting error from all counter register
-                print("select Bus=%d,device Addr=0x%02x,use page Ctrol =0x%02x, pageNo=0x%02x" %(self.berSelectBusNo,self.cdrDeviceAddr, self.pageCtrlAddr,self.rxCDR.channelPageNo[ch]))
+                print("use page Ctrol =0x%02x, pageNo=0x%02x" %(self.pageCtrlAddr,self.rxCDR.channelPageNo[ch]))
                 #read error counter one by one
                 for j,errcnt in enumerate(self.rxCDR.errCounterAddr.keys()):
-                    self._errorCount[j]=self.AA.readfromCDR(self.berSelectBusNo,self.cdrDeviceAddr, self.rxCDR.errCounterAddr[errcnt])
+                    self._errorCount[j]=self.AA.readfromCDREval(self.rxCDR.errCounterAddr[errcnt])
                     self._totalErrCount[i] += self._errorCount[j]
-                    print("select Bus=%d,device Addr=0x%02x,ErrCountAddr=0x%02x, Value=%d" % \
-                          (self.berSelectBusNo, self.cdrDeviceAddr, self.rxCDR.errCounterAddr[errcnt], self._errorCount[j]))
+                    print("ErrCountAddr=0x%02x, Value=%d" % \
+                          (self.rxCDR.errCounterAddr[errcnt], self._errorCount[j]))
                 self.totalRunningTime[i]+=(finishTime-startTime)
-                print("Ch" + str(i)+ ", TotalError=" + str(self._totalErrCount[i])+ " ,TimeElapsed=" + str(round(self.totalRunningTime[i],1))+ " seconds")
+                print("Ch" + str(i)+ ", TotalError=" + str(self._totalErrCount[i])+ " ,TimeElapsed=" + str(round(self.totalRunningTime[i],4))+ " seconds")
             self.realGatingFinishTime=clock()
 
             self.updateValueOnDisplay()

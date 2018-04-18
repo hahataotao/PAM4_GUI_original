@@ -16,13 +16,13 @@
 	},
 	"BER_TestMode": {
 		"_comment": "['Real']-all on, ['Simulating']==>Excluding all hardware, ['Semi']==>No Attenuator hardware",
-		"testModeSelect": "Simulating",
+		"testModeSelect": "Real0 ",
 		"channelWaitTime":0.1,
 		"startBERAttr":6,
 		"endBERAttr":25,
 		"attrStep":0.5,
 		"minWaitTime":8,
-		"maxWaitTime":100,
+		"maxWaitTime":10,
 		"minErrors":100
 
 

@@ -5,15 +5,14 @@ import os
 import sys
 from decimal import Decimal
 from waitbox import Ui_Form
-
 from BER_setting import Ui_setting
 
-class SubDialog(QtGui.QDialog):
-    def __init__(self):
-        super(SubDialog,self).__init__()
-        self.ui=Ui_setting()
-        self.ui.setupUi(self)
 
+class hiddenBERDialog(QtGui.QDialog):
+    def __init__(self):
+        super(hiddenBERDialog, self).__init__()
+        self.ui = Ui_setting()
+        self.ui.setupUi(self)
 
 class WaitBoxWindow(QWidget,Ui_Form):
     def __init__(self,parent=None):
@@ -130,8 +129,13 @@ class Window(QWidget):
         self.model=model
         self.setupMainWindow()
         self.setupAllSignalsSlot()
+        self.exit = QtGui.QAction(self)
+        self.exit.setShortcut('Ctrl+Q')
+        self.exit.triggered.connect(self.closeEvent)
+        #self.connect(self.exit, QtCore.SIGNAL('triggered()'), QtCore.SLOT('close()'))
         # register func with model for future model update announcements
         self.model.subscribe_update_func(self.update_ui_from_model)
+
     def setupTab1GUI(self):
         self.tab1 = QtGui.QTableWidget(self)
         self.tabWidget.addTab(self.tab1, "EyeCapture 100G")
@@ -505,12 +509,11 @@ class Window(QWidget):
         self.totalNoErrCh3.setAlignment(QtCore.Qt.AlignCenter)
         #self.frameDisplay=QtGui.QFrame(self.gridLayoutWidgetInsideTab3)
         self.palette = QtGui.QPalette()
-        self.palette.setBrush(QPalette.Background, QBrush(QtGui.QPixmap("C:\PAM4_GUI\logo.png")))
-
+        #self.palette.setBrush(QPalette.Background, QBrush(QtGui.QPixmap("C:\PAM4_GUI\logo.png")))
+        self.pixmap1 = QtGui.QPixmap(os.getcwd()+"\logonew.png")
         self.kaiamLogo = QtGui.QLabel(self.gridLayoutWidgetInsideTab3)
        # self.kaiamLogo.setGeometry(0, 0, 30, 30)
        # self.kaiamLogo.setMargin(0)
-        self.pixmap1 = QtGui.QPixmap(os.getcwd() + "\logonew.png")
         self.kaiamLogo.setPixmap(self.pixmap1)
         # self.palettePAM4 = QtGui.QPalette()
         # #self.palettePAM4.setBrush(QPalette.Background, QBrush(QtGui.QPixmap("C:\ROSA_Tester\Pam4.png")))
@@ -593,10 +596,14 @@ class Window(QWidget):
     def openHiddenSettingDiagbox(self):
         modifiers = QtGui.QApplication.keyboardModifiers()
         if modifiers == QtCore.Qt.ShiftModifier:
+            if self.hiddenBERDialog1Flag:
+                self.hiddenBERDialog1.hide()
+                self.hiddenBERDialog1Flag=False
+            else:
+                self.hiddenBERDialog1.show()
+                self.hiddenBERDialog1Flag=True
+
             print('Shift+Click' + "==>Open hidden diagbox to allow hidden selection")
-            hiddenDiag = SubDialog()
-            hiddenDiag.show()
-            hiddenDiag.exec_()
     def setupTab3GUIHiddenDialog(self):
         dialog = QtGui.QDialog()
         bt1=QtGui.QPushButton('Test',dialog)
@@ -653,19 +660,19 @@ class Window(QWidget):
             # to do BER hardware initialization, reading config file, establish COM port and setup control parameter
             print('go to do setup control hardware parameters')
             if (self.main_ctrl.testBERMode !='Simulating'):
-                #if self.main_ctrl.openAttrCOMPort():
-                    # print( "Attenuator COM port open successfully and ready for use!")
-                    # newAttrValue=self.main_ctrl.attrValueChange(1)
-                    # self.lblAttrValue.setText('Set Attr. ' + str(newAttrValue) + ' dB')
-                if self.main_ctrl.openQSFPddAAID():
-                    print("QSFPdd AArdvark is open succesfully!")
-                else:
-                    print("QSFPdd AArdvark is failed to connect!")
-                    return False
+                if self.main_ctrl.openAttrCOMPort():
+                    print( "Attenuator COM port open successfully and ready for use!")
+                    newAttrValue=self.main_ctrl.attrValueChange(1)
+                    self.lblAttrValue.setText('Set Attr. ' + str(newAttrValue) + ' dB')
+                    if self.main_ctrl.openQSFPddAAID():
+                        print("QSFPdd AArdvark is open succesfully!")
+                    else:
+                        print("QSFPdd AArdvark is failed to connect!")
+                        return False
 
-                # else:
-                #     print('Initialization hardware at attenuator COM port failed')
-                #     return False
+                else:
+                    print('Initialization hardware at attenuator COM port failed')
+                    return False
 
             #handle button state sequence
             self.btnInitBER.setText("Release" if (self.btnInitBER.text() == 'Initialize' \
@@ -673,7 +680,7 @@ class Window(QWidget):
             self.btnStartStopGating.setEnabled(True if (self.btnInitBER.text() == 'Release') else False)
             self.btnStartStopGatingState = [True if (self.btnStartStopGating.isEnabled() and self.btnInitBER.text() == 'Initialize') else False]
             self.btnInitBERState = [True if self.btnStartStopGating.isEnabled() else False]
-            #self.slsetAttr.setEnabled(True)
+            self.slsetAttr.setEnabled(True)
             #otherwise
             #  Report error message and Stay the same
         elif self.btnInitBER.text() == 'Release':
@@ -688,7 +695,7 @@ class Window(QWidget):
                 True if (self.btnStartStopGating.isEnabled() and self.btnInitBER.text() == 'Initialize') else False]
             self.btnStartStopGating.setText("Start Gating")    #consider some procedures to exit unexpected user interruption as needed,may need to add some code to handle
             self.btnInitBERState = [True if self.btnStartStopGating.isEnabled() else False]
-            #self.slsetAttr.setEnabled(False)
+            self.slsetAttr.setEnabled(False)
         else:
                 pass
 
@@ -698,6 +705,7 @@ class Window(QWidget):
         self.verticalLayoutWidget = QtGui.QWidget(self)
         self.verticalLayoutWidget.setGeometry(20, 10, 411, 411)
         self.verticalLayout = QtGui.QVBoxLayout(self.verticalLayoutWidget)
+
         self.setWindowTitle("Kaiam PAM4 400Gbits Error Rate Measurement Control GUI")
         self.tabWidget = QtGui.QTabWidget(self.verticalLayoutWidget)
 
@@ -714,6 +722,11 @@ class Window(QWidget):
         self.tabWidget.setCurrentIndex(0)
         self.setGeometry(0, 0, 700, 550)
         self.move(QtGui.QApplication.desktop().rect().center() - self.rect().center())
+        self.hiddenBERDialog1 = hiddenBERDialog()
+        self.hiddenBERDialog1.setWindowFlags(QtCore.Qt.Window|QtCore.Qt.WindowTitleHint|QtCore.Qt.CustomizeWindowHint)
+        self.hiddenBERDialog1.move(100,100)
+        self.hiddenBERDialog1Flag=False
+        self.hiddenBERDialog1.hide()
         self.show()
     def setupAllSignalsSlot(self):
         #self.setupTab1GUISignalSlot()
@@ -731,7 +744,14 @@ class Window(QWidget):
 
 
     # region hidden tab1 & tab2  (eye capture & module control disable/enable
-
+    def closeEvent(self, event):
+        reply = QtGui.QMessageBox.question(self, 'Message', "Are you sure to quit?", QtGui.QMessageBox.Yes,
+                                           QtGui.QMessageBox.No)
+        if reply == QtGui.QMessageBox.Yes:
+            event.accept()
+            self.hiddenBERDialog1.close()
+        else:
+            event.ignore()
 def startGUI():
     app = QtGui.QApplication(sys.argv)
     initFileDirectory = "C:/ROSA_Tester/BER/"
