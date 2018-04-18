@@ -662,7 +662,10 @@ class Window(QWidget):
             if (self.main_ctrl.testBERMode !='Simulating'):
                 if self.main_ctrl.openAttrCOMPort():
                     print( "Attenuator COM port open successfully and ready for use!")
-                    newAttrValue=self.main_ctrl.attrValueChange(1)
+                    newAttrValue = int(self.hiddenBERDialog1.ui.txtStartBerAttr_2.text())
+                    self.main_ctrl.attrValueChange(newAttrValue*2)
+
+                    self.slsetAttr.setValue(newAttrValue*2)
                     self.lblAttrValue.setText('Set Attr. ' + str(newAttrValue) + ' dB')
                     if self.main_ctrl.openQSFPddAAID():
                         print("QSFPdd AArdvark is open succesfully!")
@@ -686,7 +689,7 @@ class Window(QWidget):
         elif self.btnInitBER.text() == 'Release':
             print('dealing with hardware release resource ')
             if (self.main_ctrl.testBERMode != 'Simulating'):
-                #self.main_ctrl.closeAttrCOMPort()
+                self.main_ctrl.closeAttrCOMPort()
                 self.main_ctrl.closeQSFPddAAID()
             self.btnInitBER.setText("Release" if (self.btnInitBER.text() == 'Initialize' \
                                                   and not self.btnStartStopGating.isEnabled())  else "Initialize")
@@ -713,6 +716,14 @@ class Window(QWidget):
         self.verticalLayout.addWidget(self.tabWidget)
         #self.setupTab1GUI()
         # self.setupTab2GUI()
+        self.hiddenBERDialog1 = hiddenBERDialog()
+        self.hiddenBERDialog1.setWindowFlags(
+            QtCore.Qt.Window | QtCore.Qt.WindowTitleHint | QtCore.Qt.CustomizeWindowHint)
+        self.hiddenBERDialog1.move(100, 100)
+        self.hiddenBERDialog1Flag = False
+        self.hiddenBERDialog1.ui.txtStartBerAttr_2.setText(str(self.main_ctrl.startBERAttr))
+        self.hiddenBERDialog1.hide()
+
         self.setupTab3GUI()
 
         self.setLayout(self.verticalLayout)
@@ -722,11 +733,7 @@ class Window(QWidget):
         self.tabWidget.setCurrentIndex(0)
         self.setGeometry(0, 0, 700, 550)
         self.move(QtGui.QApplication.desktop().rect().center() - self.rect().center())
-        self.hiddenBERDialog1 = hiddenBERDialog()
-        self.hiddenBERDialog1.setWindowFlags(QtCore.Qt.Window|QtCore.Qt.WindowTitleHint|QtCore.Qt.CustomizeWindowHint)
-        self.hiddenBERDialog1.move(100,100)
-        self.hiddenBERDialog1Flag=False
-        self.hiddenBERDialog1.hide()
+
         self.show()
     def setupAllSignalsSlot(self):
         #self.setupTab1GUISignalSlot()

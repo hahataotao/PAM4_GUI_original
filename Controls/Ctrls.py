@@ -274,6 +274,7 @@ class MainController(object):
         self.berRateSelect = self.initData["BERTestHardwareConfiguration"]["berAArdVarkRateSelectKhz"]
         self.testModeSelect= self.initData["BER_TestMode"]["testModeSelect"]
         self.testBERMode=self.initData["BER_TestMode"]["testModeSelect"]
+        self.startBERAttr=self.initData["BER_TestMode"]["startBERAttr"]
         # self.berSelectBusNo=self.initData["BERTestHardwareConfiguration"]["berSelectedBusNo"]
         # self.cdrDeviceAddr=self.initData["BERTestHardwareConfiguration"]["cdrBERDeviceAddr"]
         # self.dataRatePAM4=self.initData["BERTestHardwareConfiguration"]["dataRate"]
